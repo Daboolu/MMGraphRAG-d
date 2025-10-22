@@ -133,20 +133,28 @@ class MMGraphRAG:
             if os.path.exists(kv_store_path):
                 with open(kv_store_path, "r", encoding="utf-8") as file:
                     content = json.load(file)
-                    # 判断 JSON 文件是否为空 {}
-                    if content == {}:
-                        logger.info(f"{kv_store_path} exists but is empty. Proceeding with preprocess.")
-                        await self.ChunkingFunc_pdf2md.extract_text_and_images(path)
-                    else:
-                        logger.info(f"{kv_store_path} exists and is not empty. Skipping preprocess.")
+                # 判断 JSON 文件是否为空 {}
+                if content == {}:
+                    logger.info(f"{kv_store_path} exists but is empty. Proceeding with preprocess.")
+                    await self.ChunkingFunc_pdf2md.extract_text_and_images(path)
+                else:
+                    logger.info(f"{kv_store_path} exists and is not empty. Skipping preprocess.")
             else:
                 await self.ChunkingFunc_pdf2md.extract_text_and_images(path)
         filepath = os.path.join(self.working_dir, 'kv_store_text_chunks.json')
         with open(filepath, 'r') as file:
             chunks = json.load(file)
-        await self.ExtractEntitiesFromText.text_entity_extraction(chunks)
+        text_kg_path = os.path.join(self.working_dir,'graph_chunk_entity_relation.graphml')
+        if os.path.exists(text_kg_path):
+            logger.info(f"Textual knowledge graph exists. Skipping construction process.")
+        else:    
+            await self.ExtractEntitiesFromText.text_entity_extraction(chunks)
         imgfolderpath = os.path.join(self.working_dir, 'images')
-        await img2graph(imgfolderpath)
+        mmkgpath1 = os.path.join(self.working_dir,'graph_merged_image_1.graphml')
+        if os.path.exists(mmkgpath1):
+            logger.info(f"Image knowledge graph is ready. Skipping construction process.")
+        else:
+            await img2graph(imgfolderpath)
         filepath2 = os.path.join(self.working_dir, 'kv_store_image_data.json')
         with open(filepath2, 'r') as file:
             image_data = json.load(file)
