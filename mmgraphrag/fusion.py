@@ -634,9 +634,13 @@ def image_knowledge_graph_update(enhanced_img_kg_path, image_entity_name):
             matched_entity_found = True
             source_node_id = None
             for node, data in G.nodes(data=True):
-                if data.get('entity_type') == '"ORI_IMG"' or '"UNKNOWN"':
+                entity_type = data.get('entity_type', '').strip('"')
+                if entity_type == '"ORI_IMG"' or entity_type == '"UNKNOWN"':
                     source_node_id = node
                     break
+                # if data.get('entity_type') == '"ORI_IMG"' or '"UNKNOWN"':
+                #     source_node_id = node
+                #     break
 
             if source_node_id is None:
                 raise ValueError("No node with entity_type 'ORI_IMG' found in the graph.")
